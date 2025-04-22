@@ -1,8 +1,1 @@
-# Memez Fun SDK
-
-Curves:
-- Pump
-- Stable
-- Auction
-
-WIP+ 
+# xPump SDK
