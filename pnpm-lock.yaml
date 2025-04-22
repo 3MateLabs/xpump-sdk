@@ -12,8 +12,8 @@ importers:
         specifier: ^5.3.0
         version: 5.3.0(@mysten/bcs@1.5.0)(@mysten/sui@1.26.0(typescript@5.7.2))
       '@interest-protocol/memez-fun-sdk':
-        specifier: 4.0.0
-        version: 4.0.0(@mysten/bcs@1.5.0)(typescript@5.7.2)
+        specifier: 4.1.0
+        version: 4.1.0(@mysten/bcs@1.5.0)(typescript@5.7.2)
       '@mysten/sui':
         specifier: ^1.26.0
         version: 1.26.0(typescript@5.7.2)
@@ -461,8 +461,8 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
-  '@interest-protocol/memez-fun-sdk@4.0.0':
-    resolution: {integrity: sha512-bxdU7bBj/9Sv8nDE9KI0QieiX1kZZyf/FlnFUKqPSeRnGYP/SUugBG7myrUynmRrpRxb0C9m2ZL8P5MMRnuwVQ==}
+  '@interest-protocol/memez-fun-sdk@4.1.0':
+    resolution: {integrity: sha512-NYhjHy3BDOtD63PE2ccC1Qrc9X18bP3oaPCe7py4VQ8r5eKTUsA2SAnB+R8XMEOeyyfj5ih+mxm2Cu1xnL9mtQ==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -2338,7 +2338,7 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@interest-protocol/memez-fun-sdk@4.0.0(@mysten/bcs@1.5.0)(typescript@5.7.2)':
+  '@interest-protocol/memez-fun-sdk@4.1.0(@mysten/bcs@1.5.0)(typescript@5.7.2)':
     dependencies:
       '@cetusprotocol/cetus-sui-clmm-sdk': 5.3.0(@mysten/bcs@1.5.0)(@mysten/sui@1.26.0(typescript@5.7.2))
       '@mysten/sui': 1.26.0(typescript@5.7.2)

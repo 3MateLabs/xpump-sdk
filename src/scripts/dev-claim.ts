@@ -1,15 +1,11 @@
-// import {
-//   executeTx,
-//   keypair,
-//   memezPumpTestnet,
-//   TEST_POOL_ID,
-// } from '../../utils.script';
-// (async () => {
-//   const { memeCoin, tx } = await memezPumpTestnet.devClaim({
-//     pool: TEST_POOL_ID,
-//   });
+import { executeTx, keypair, TEST_POOL_ID, xpumpTestnet } from './utils.script';
 
-//   tx.transferObjects([memeCoin], keypair.toSuiAddress());
+(async () => {
+  const { memeCoin, tx } = await xpumpTestnet.devClaim({
+    pool: TEST_POOL_ID,
+  });
 
-//   await executeTx(tx);
-// })();
+  tx.transferObjects([memeCoin], keypair.toSuiAddress());
+
+  await executeTx(tx);
+})();

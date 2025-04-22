@@ -4,7 +4,7 @@ import { root } from './merkle';
 import { executeTx, keypair, xpumpTestnet } from './utils.script';
 
 const TREASURY_CAP =
-  '0xa338fb1e46c0e7068523f0288e3c882be8efb8ea6cee3730d1f56adc7cfce324';
+  '0xacc0d40d0b253e315568d8b0680785faac9f34fda64f9b8965d9fa3978fe6d86';
 
 const TOTAL_SUPPLY = 1_000_000_000_000_000_000n;
 

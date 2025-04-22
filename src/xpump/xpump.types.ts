@@ -55,10 +55,6 @@ export interface NewPoolArgs extends MaybeTx {
   migratorWitness?: string;
 }
 
-export interface MigrateArgs extends MaybeTx {
-  pool: string;
-}
-
 export interface XPool {
   objectId: string;
   version: string;
@@ -73,4 +69,24 @@ export interface PumpArgs extends MaybeTx {
   proof: string[];
   suiCoin: MemezPumpTypes.PumpArgs['quoteCoin'];
   minAmount?: U64;
+}
+
+export interface DumpArgs extends MaybeTx {
+  pool: string | XPool;
+  memeCoin: MemezPumpTypes.DumpArgs['memeCoin'];
+  minAmountOut?: U64;
+  proof: string[];
+}
+
+export interface DevClaimArgs extends MaybeTx {
+  pool: string | XPool;
+}
+
+export interface MigrateArgs extends MaybeTx {
+  pool: string | XPool;
+}
+
+export interface QuoteArgs {
+  pool: string | XPool;
+  amount: U64;
 }

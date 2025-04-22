@@ -1,4 +1,7 @@
-import { MIGRATOR_WITNESSES } from '@interest-protocol/memez-fun-sdk';
+import {
+  MIGRATOR_WITNESSES,
+  PumpTypes,
+} from '@interest-protocol/memez-fun-sdk';
 import { bcs } from '@mysten/sui/bcs';
 import { Transaction } from '@mysten/sui/transactions';
 import {
@@ -7,11 +10,20 @@ import {
   normalizeStructTag,
   normalizeSuiAddress,
 } from '@mysten/sui/utils';
+import { devInspectAndGetReturnValues } from '@polymedia/suitcase-core';
 import invariant from 'tiny-invariant';
 
 import { SDK } from './sdk';
 import { hexStringsToByteArrays } from './utils';
-import { NewPoolArgs, PumpArgs, SdkConstructorArgs } from './xpump.types';
+import {
+  DevClaimArgs,
+  DumpArgs,
+  MigrateArgs,
+  NewPoolArgs,
+  PumpArgs,
+  QuoteArgs,
+  SdkConstructorArgs,
+} from './xpump.types';
 
 export class XPumpSDK extends SDK {
   constructor(args: SdkConstructorArgs | undefined | null = null) {
@@ -114,7 +126,7 @@ export class XPumpSDK extends SDK {
     if (typeof pool === 'string') {
       invariant(
         isValidSuiObjectId(pool),
-        'pool must be a valid Sui objectId or MemezPool'
+        'pool must be a valid Sui objectId or xPumpPool'
       );
       pool = await this.getXPool(pool);
     }
@@ -143,213 +155,161 @@ export class XPumpSDK extends SDK {
     };
   }
 
-  // /**
-  //  * Swaps the meme coin for Sui.
-  //  *
-  //  * @param args - An object containing the necessary arguments to dump the meme coin into the pool.
-  //  * @param args.tx - Sui client Transaction class to chain move calls.
-  //  * @param args.pool - The objectId of the MemezPool or the full parsed pool.
-  //  * @param args.memeCoin - The meme coin to sell for Sui.
-  //  * @param args.minAmountOut - The minimum amount Sui expected to be received.
-  //  *
-  //  * @returns An object containing the Sui coin and the transaction.
-  //  * @returns values.quoteCoin - The quote coin.
-  //  * @returns values.tx - The Transaction.
-  //  */
-  // public async dump({
-  //   tx = new Transaction(),
-  //   pool,
-  //   memeCoin,
-  //   minAmountOut = 0n,
-  // }: DumpArgs) {
-  //   if (typeof pool === 'string') {
-  //     invariant(
-  //       isValidSuiObjectId(pool),
-  //       'pool must be a valid Sui objectId or MemezPool'
-  //     );
-  //     pool = await this.getPumpPool(pool);
-  //   }
+  public async dump({
+    tx = new Transaction(),
+    pool,
+    memeCoin,
+    minAmountOut = 0n,
+    proof,
+  }: DumpArgs) {
+    if (typeof pool === 'string') {
+      invariant(
+        isValidSuiObjectId(pool),
+        'pool must be a valid Sui objectId or MemezPool'
+      );
+      pool = await this.getXPool(pool);
+    }
 
-  //   invariant(!pool.usesTokenStandard, 'pool uses token standard');
+    invariant(proof.length > 0, 'proof must be a non-empty array');
 
-  //   const quoteCoin = tx.moveCall({
-  //     package: this.packages.MEMEZ_FUN.latest,
-  //     module: this.modules.PUMP,
-  //     function: 'dump',
-  //     arguments: [
-  //       tx.object(pool.objectId),
-  //       tx.object(pool.ipxMemeCoinTreasury),
-  //       this.ownedObject(tx, memeCoin),
-  //       tx.pure.u64(minAmountOut),
-  //       this.getVersion(tx),
-  //     ],
-  //     typeArguments: [pool.memeCoinType, pool.quoteCoinType],
-  //   });
+    const buffer = bcs
+      .vector(bcs.vector(bcs.u8()))
+      .serialize(hexStringsToByteArrays(proof));
 
-  //   return {
-  //     quoteCoin,
-  //     tx,
-  //   };
-  // }
+    const quoteCoin = tx.moveCall({
+      package: this.packages.XPUMP.latest,
+      module: this.modules.XPUMP,
+      function: 'dump',
+      arguments: [
+        tx.object(pool.objectId),
+        tx.object(pool.memezFunPool.ipxMemeCoinTreasury),
+        this.ownedObject(tx, memeCoin),
+        tx.pure.u64(minAmountOut),
+        tx.pure(buffer),
+        this.getVersion(tx),
+      ],
+      typeArguments: [pool.memezFunPool.memeCoinType],
+    });
 
-  // /**
-  //  * Allows the developer to claim the first purchase coins. It can only be done after the pool migrates.
-  //  *
-  //  * @param args - An object containing the necessary arguments to claim the first purchase coins.
-  //  * @param args.tx - Sui client Transaction class to chain move calls.
-  //  * @param args.pool - The objectId of the MemezPool or the full parsed pool.
-  //  *
-  //  * @returns An object containing the meme coin and the transaction.
-  //  * @returns values.memeCoin - The meme coin.
-  //  * @returns values.tx - The Transaction.
-  //  */
-  // public async devClaim({ tx = new Transaction(), pool }: DevClaimArgs) {
-  //   if (typeof pool === 'string') {
-  //     invariant(
-  //       isValidSuiObjectId(pool),
-  //       'pool must be a valid Sui objectId or MemezPool'
-  //     );
-  //     pool = await this.getPumpPool(pool);
-  //   }
+    return {
+      quoteCoin,
+      tx,
+    };
+  }
 
-  //   const memeCoin = tx.moveCall({
-  //     package: this.packages.MEMEZ_FUN.latest,
-  //     module: this.modules.PUMP,
-  //     function: 'dev_purchase_claim',
-  //     arguments: [tx.object(pool.objectId), this.getVersion(tx)],
-  //     typeArguments: [pool.memeCoinType, pool.quoteCoinType],
-  //   });
+  public async devClaim({ tx = new Transaction(), pool }: DevClaimArgs) {
+    if (typeof pool === 'string') {
+      invariant(
+        isValidSuiObjectId(pool),
+        'pool must be a valid Sui objectId or MemezPool'
+      );
+      pool = await this.getXPool(pool);
+    }
 
-  //   return {
-  //     memeCoin,
-  //     tx,
-  //   };
-  // }
+    const memeCoin = tx.moveCall({
+      package: this.packages.XPUMP.latest,
+      module: this.modules.XPUMP,
+      function: 'dev_purchase_claim',
+      arguments: [tx.object(pool.objectId), this.getVersion(tx)],
+      typeArguments: [pool.memezFunPool.memeCoinType],
+    });
 
-  // /**
-  //  * Migrates the pool to DEX based on the MigrationWitness.
-  //  *
-  //  * @param args - An object containing the necessary arguments to migrate the pool.
-  //  * @param args.tx - Sui client Transaction class to chain move calls.
-  //  * @param args.pool - The objectId of the MemezPool or the full parsed pool.
-  //  *
-  //  * @returns An object containing the migrator and the transaction.
-  //  * @returns values.migrator - The migrator.
-  //  * @returns values.tx - The Transaction.
-  //  */
-  // public async migrate({ tx = new Transaction(), pool }: MigrateArgs) {
-  //   if (typeof pool === 'string') {
-  //     invariant(
-  //       isValidSuiObjectId(pool),
-  //       'pool must be a valid Sui objectId or MemezPool'
-  //     );
-  //     pool = await this.getPumpPool(pool);
-  //   }
+    return {
+      memeCoin,
+      tx,
+    };
+  }
 
-  //   const migrator = tx.moveCall({
-  //     package: this.packages.XPUMP.latest,
-  //     module: this.modules.XPUMP,
-  //     function: 'migrate',
-  //     arguments: [tx.object(pool.objectId), this.getVersion(tx)],
-  //     typeArguments: [pool.memeCoinType],
-  //   });
+  public async migrate({ tx = new Transaction(), pool }: MigrateArgs) {
+    if (typeof pool === 'string') {
+      invariant(
+        isValidSuiObjectId(pool),
+        'pool must be a valid Sui objectId or MemezPool'
+      );
+      pool = await this.getXPool(pool);
+    }
 
-  //   return {
-  //     migrator,
-  //     tx,
-  //   };
-  // }
+    const migrator = tx.moveCall({
+      package: this.packages.XPUMP.latest,
+      module: this.modules.XPUMP,
+      function: 'migrate',
+      arguments: [tx.object(pool.objectId), this.getVersion(tx)],
+      typeArguments: [pool.memezFunPool.memeCoinType],
+    });
 
-  // /**
-  //  * Quotes the amount of meme coin received after selling Sui. The swap fee is from the coin in (Sui).
-  //  *
-  //  * @param args - An object containing the necessary arguments to quote the amount of meme coin received after selling Sui.
-  //  * @param args.pool - The objectId of the MemezPool or the full parsed pool.
-  //  * @param args.amount - The amount of Sui to sell.
-  //  *
-  //  * @returns An object containing the amount of meme coin received and the swap in fee.
-  //  * @returns values.memeAmountOut - The amount of meme coin received.
-  //  * @returns values.swapFeeIn - The swap fee in paid in Sui.
-  //  */
-  // public async quotePump({
-  //   pool,
-  //   amount,
-  // }: QuoteArgs): Promise<QuotePumpReturnValues> {
-  //   if (BigInt(amount) == 0n) return { memeAmountOut: 0n, swapFeeIn: 0n };
-  //   if (typeof pool === 'string') {
-  //     invariant(
-  //       isValidSuiObjectId(pool),
-  //       'pool must be a valid Sui objectId or MemezPool'
-  //     );
-  //     pool = await this.getPumpPool(pool);
-  //   }
+    return {
+      migrator,
+      tx,
+    };
+  }
 
-  //   const tx = new Transaction();
+  public async quotePump({
+    pool,
+    amount,
+  }: QuoteArgs): Promise<PumpTypes.QuotePumpReturnValues> {
+    if (BigInt(amount) == 0n) return { memeAmountOut: 0n, swapFeeIn: 0n };
+    if (typeof pool === 'string') {
+      invariant(
+        isValidSuiObjectId(pool),
+        'pool must be a valid Sui objectId or MemezPool'
+      );
+      pool = await this.getXPool(pool);
+    }
 
-  //   tx.moveCall({
-  //     package: this.packages.MEMEZ_FUN.latest,
-  //     module: this.modules.PUMP,
-  //     function: 'pump_amount',
-  //     arguments: [tx.object(pool.objectId), tx.pure.u64(amount)],
-  //     typeArguments: [pool.memeCoinType, pool.quoteCoinType],
-  //   });
+    const tx = new Transaction();
 
-  //   const result = await devInspectAndGetReturnValues(this.client, tx, [
-  //     [bcs.vector(bcs.u64())],
-  //   ]);
+    tx.moveCall({
+      package: this.packages.XPUMP.latest,
+      module: this.modules.XPUMP,
+      function: 'quote_pump',
+      arguments: [tx.object(pool.objectId), tx.pure.u64(amount)],
+      typeArguments: [pool.memezFunPool.memeCoinType],
+    });
 
-  //   const [memeAmountOut, swapFeeIn] = result[0][0].map((value: string) =>
-  //     BigInt(value)
-  //   );
+    const result = await devInspectAndGetReturnValues(this.client, tx, [
+      [bcs.vector(bcs.u64())],
+    ]);
 
-  //   return { memeAmountOut, swapFeeIn };
-  // }
+    const [memeAmountOut, swapFeeIn] = result[0][0].map((value: string) =>
+      BigInt(value)
+    );
 
-  // /**
-  //  * Quotes the amount of Sui received after selling meme coin. The swap fee is from the coin in (MemeCoin).
-  //  *
-  //  * @param args - An object containing the necessary arguments to quote the amount of Sui received after selling meme coin.
-  //  * @param args.pool - The objectId of the MemezPool or the full parsed pool.
-  //  * @param args.amount - The amount of meme coin to sell.
-  //  *
-  //  * @returns An object containing the amount of Sui received and the swap in fee.
-  //  * @returns values.quoteAmountOut - The amount of Sui received.
-  //  * @returns values.swapFeeIn - The swap fee in paid in MemeCoin.
-  //  * @returns values.burnFee - The burn fee in MemeCoin.
-  //  */
-  // public async quoteDump({
-  //   pool,
-  //   amount,
-  // }: QuoteArgs): Promise<QuoteDumpReturnValues> {
-  //   if (BigInt(amount) == 0n)
-  //     return { quoteAmountOut: 0n, swapFeeIn: 0n, burnFee: 0n };
+    return { memeAmountOut, swapFeeIn };
+  }
 
-  //   if (typeof pool === 'string') {
-  //     invariant(
-  //       isValidSuiObjectId(pool),
-  //       'pool must be a valid Sui objectId or MemezPool'
-  //     );
-  //     pool = await this.getPumpPool(pool);
-  //   }
+  public async quoteDump({
+    pool,
+    amount,
+  }: QuoteArgs): Promise<PumpTypes.QuoteDumpReturnValues> {
+    if (BigInt(amount) == 0n)
+      return { quoteAmountOut: 0n, swapFeeIn: 0n, burnFee: 0n };
 
-  //   const tx = new Transaction();
+    if (typeof pool === 'string') {
+      invariant(
+        isValidSuiObjectId(pool),
+        'pool must be a valid Sui objectId or MemezPool'
+      );
+      pool = await this.getXPool(pool);
+    }
 
-  //   tx.moveCall({
-  //     package: this.packages.MEMEZ_FUN.latest,
-  //     module: this.modules.PUMP,
-  //     function: 'dump_amount',
-  //     arguments: [tx.object(pool.objectId), tx.pure.u64(amount)],
-  //     typeArguments: [pool.memeCoinType, pool.quoteCoinType],
-  //   });
+    const tx = new Transaction();
 
-  //   const result = await devInspectAndGetReturnValues(this.client, tx, [
-  //     [bcs.vector(bcs.u64())],
-  //   ]);
+    tx.moveCall({
+      package: this.packages.XPUMP.latest,
+      module: this.modules.XPUMP,
+      function: 'quote_dump',
+      arguments: [tx.object(pool.objectId), tx.pure.u64(amount)],
+      typeArguments: [pool.memezFunPool.memeCoinType],
+    });
 
-  //   const [quoteAmountOut, swapFeeIn, burnFee] = result[0][0].map(
-  //     (value: string) => BigInt(value)
-  //   );
+    const result = await devInspectAndGetReturnValues(this.client, tx, [
+      [bcs.vector(bcs.u64())],
+    ]);
 
-  //   return { quoteAmountOut, swapFeeIn, burnFee };
-  // }
+    const [quoteAmountOut, swapFeeIn, burnFee] = result[0][0].map(
+      (value: string) => BigInt(value)
+    );
+
+    return { quoteAmountOut, swapFeeIn, burnFee };
+  }
 }

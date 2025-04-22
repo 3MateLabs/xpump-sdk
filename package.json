@@ -30,7 +30,11 @@
     "new": "tsx src/scripts/new.ts",
     "get": "tsx src/scripts/get.ts",
     "merkle": "tsx src/scripts/merkle.ts",
-    "pump": "tsx src/scripts/pump.ts"
+    "pump": "tsx src/scripts/pump.ts",
+    "dump": "tsx src/scripts/dump.ts",
+    "migrate": "tsx src/scripts/migrate.ts",
+    "quote-pump": "tsx src/scripts/quote-pump.ts",
+    "quote-dump": "tsx src/scripts/quote-dump.ts"
   },
   "keywords": [],
   "license": "ISC",
@@ -58,7 +62,7 @@
   },
   "dependencies": {
     "@cetusprotocol/cetus-sui-clmm-sdk": "^5.3.0",
-    "@interest-protocol/memez-fun-sdk": "4.0.0",
+    "@interest-protocol/memez-fun-sdk": "4.1.0",
     "@mysten/sui": "^1.26.0",
     "@polymedia/suitcase-core": "^0.0.36",
     "js-sha3": "^0.9.3",

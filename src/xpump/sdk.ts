@@ -1,5 +1,4 @@
 import {
-  GetPoolMetadataArgs,
   MemezFunSharedObjects,
   MemezPumpSDK,
   Modules as MemezModules,
@@ -15,7 +14,6 @@ import { isValidSuiObjectId } from '@mysten/sui/utils';
 import {
   normalizeStructTag,
   normalizeSuiAddress,
-  normalizeSuiObjectId,
   SUI_FRAMEWORK_ADDRESS,
   SUI_TYPE_ARG,
 } from '@mysten/sui/utils';
@@ -142,10 +140,60 @@ export class SDK {
       })
     );
 
-    return {
+    const xPool = {
       ...pool,
       memezFunPool: memezPool,
     };
+
+    xPool.memezFunPool.metadata = await this.getPoolMetadata(xPool);
+
+    return xPool;
+  }
+
+  public async getPoolMetadata(
+    pool: string | XPool
+  ): Promise<Record<string, string>> {
+    if (typeof pool === 'string') {
+      invariant(
+        isValidSuiObjectId(pool),
+        'pool must be a valid Sui objectId or xPumpPool'
+      );
+      pool = await this.getXPool(pool);
+    }
+
+    const tx = new Transaction();
+
+    tx.moveCall({
+      package: this.packages.XPUMP.latest,
+      module: this.modules.XPUMP,
+      function: 'metadata',
+      arguments: [tx.object(pool.objectId)],
+      typeArguments: [normalizeStructTag(pool.memezFunPool.memeCoinType)],
+    });
+
+    const metadataVecMap = await this.client.devInspectTransactionBlock({
+      transactionBlock: tx,
+      sender: normalizeSuiAddress('0x0'),
+    });
+
+    invariant(
+      metadataVecMap.results?.[0]?.returnValues?.[0]?.[0],
+      'No metadata found'
+    );
+
+    const metadata = VecMap(bcs.string(), bcs.string())
+      .parse(Uint8Array.from(metadataVecMap.results[0].returnValues[0][0]))
+      .contents.reduce(
+        (acc: Record<string, string>, elem) => {
+          return {
+            ...acc,
+            [elem.key]: elem.value,
+          };
+        },
+        {} as Record<string, string>
+      );
+
+    return metadata;
   }
 
   async getCoinMetadataAndType(memeCoinTreasuryCap: string | ObjectRef) {
