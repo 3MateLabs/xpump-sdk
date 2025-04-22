@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src/memez/**/*"],
+  "include": ["src/xpump/**/*"],
   "exclude": ["src/scripts/*"]
 }
