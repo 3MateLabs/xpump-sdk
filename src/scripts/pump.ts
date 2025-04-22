@@ -1,20 +1,23 @@
 import { Transaction } from '@mysten/sui/transactions';
 
+import { joseProof } from './merkle';
 import {
   executeTx,
   keypair,
-  memezPumpTestnet,
   POW_9,
   TEST_POOL_ID,
-} from '../../utils.script';
+  xpumpTestnet,
+} from './utils.script';
+
 (async () => {
   const tx = new Transaction();
 
   const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(4n * POW_9)]);
 
-  const { memeCoin, tx: tx2 } = await memezPumpTestnet.pump({
+  const { memeCoin, tx: tx2 } = await xpumpTestnet.pump({
     pool: TEST_POOL_ID,
-    quoteCoin,
+    suiCoin: quoteCoin,
+    proof: joseProof,
     tx,
   });
 

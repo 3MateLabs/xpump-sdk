@@ -5,10 +5,7 @@ import dotenv from 'dotenv';
 import invariant from 'tiny-invariant';
 import util from 'util';
 
-import { AclSDK } from '../memez/acl';
-import { ConfigSDK } from '../memez/config';
-import { MemezPumpSDK } from '../memez/pump';
-import { MemezStableSDK } from '../memez/stable';
+import { XPumpSDK } from '../xpump';
 
 dotenv.config();
 
@@ -19,22 +16,13 @@ export const keypair = Ed25519Keypair.fromSecretKey(
 );
 
 export const TEST_POOL_ID =
-  '0xc16c8938be19557239adfff46e759446abd9239a489b34bf5d68c594514fe54d';
-
-export const TEST_STABLE_POOL_ID =
-  '0xb4474375b719f28dc2a1e2ba180575e3f862d0fa1d9e1262d7c3f72515906680';
+  '0x43da6a8e4ff0289821c4f080f818e0c264c776052a7441a3863eb86de32c177e';
 
 export const POW_9 = 10n ** 9n;
 
 export const testnetClient = new SuiClient({ url: getFullnodeUrl('testnet') });
 
-export const aclTestnet = new AclSDK();
-
-export const configTestnet = new ConfigSDK();
-
-export const memezPumpTestnet = new MemezPumpSDK();
-
-export const memezStableTestnet = new MemezStableSDK();
+export const xpumpTestnet = new XPumpSDK();
 
 export const executeTx = async (tx: Transaction, client = testnetClient) => {
   const result = await client.signAndExecuteTransaction({
