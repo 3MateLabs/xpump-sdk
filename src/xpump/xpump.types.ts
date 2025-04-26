@@ -90,3 +90,14 @@ export interface QuoteArgs {
   pool: string | XPool;
   amount: U64;
 }
+
+export interface UpdateMerkleRootArgs extends MaybeTx {
+  pool: string | XPool;
+  newMerkleRoot: string;
+}
+
+export interface UpdateMerkleRootAdminArgs extends MaybeTx {
+  pool: string | XPool;
+  newMerkleRoot: string;
+  adminWitness: ObjectInput;
+}
