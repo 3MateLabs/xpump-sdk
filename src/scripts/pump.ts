@@ -12,7 +12,7 @@ import {
 (async () => {
   const tx = new Transaction();
 
-  const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(5n * POW_9)]);
+  const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(6n * POW_9)]);
 
   const { memeCoin, tx: tx2 } = await xpumpTestnet.pump({
     pool: TEST_POOL_ID,
