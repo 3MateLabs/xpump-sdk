@@ -1,5 +1,5 @@
 {
-  "name": "xpump-sdk",
+  "name": "@giverep/xpump-sdk",
   "author": "jose cerqueira",
   "files": [
     "dist"
